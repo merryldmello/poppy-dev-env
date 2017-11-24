@@ -1,0 +1,4 @@
+policy_client_secret: '<YOUR_CLIENT_SECRET>'
+policy_base_url: '<AKAMAI_CPS_BASE_URL>'
+policy_access_token: '<YOUR_ACCESS_TOKEN>'
+policy_client_token: '<YOUR_CLIENT_TOKEN>'

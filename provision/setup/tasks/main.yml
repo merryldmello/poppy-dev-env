@@ -1,0 +1,54 @@
+- name: Install git
+  become: yes
+  apt: pkg={{ item }} state=installed update_cache=yes
+  with_items:
+    - git
+    - python-pip
+    - docker.io
+
+- name: Cloning poppy
+  git: repo=https://github.com/merryldmello/poppy.git
+       dest=/home/vagrant/poppy
+
+- name: Create poppy conf dir
+  file:
+    path: /home/vagrant/.poppy
+    state: directory
+    owner: vagrant
+    owner: vagrant
+  become: yes
+
+- name: Copy poppy conf template
+  template:
+    src: poppy.conf.j2
+    dest: /home/vagrant/.poppy/poppy.conf
+
+- name: Copy logging file
+  copy:
+    src: logging.conf
+    dest: /home/vagrant/.poppy/logging.conf
+
+- name: Install pip requirements
+  pip:
+    requirements: /home/vagrant/poppy/requirements/requirements.txt
+  become: yes
+
+- name: Install pip tests requirements
+  pip:
+    requirements: /home/vagrant/poppy/tests/test-requirements.txt
+  become: yes
+
+- pip:
+    name: docker-compose
+  become: yes
+
+- name: Install local poppy pip
+  command: pip install -e /home/vagrant/poppy
+  become: yes
+
+- name: Change compose filename
+  command: sudo mv /home/vagrant/poppy/docker/compose/dependencies.yml /home/vagrant/poppy/docker/compose/docker-compose.yml
+
+- name: Run docker compose file
+  docker_service: 
+    project_src: /home/vagrant/poppy/docker/compose
