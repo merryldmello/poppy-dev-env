@@ -1,0 +1,173 @@
+[DEFAULT]
+verbose = True
+datacenter = DC1
+base_url = http://0.0.0.0:8888
+debug = True
+project_id_in_url = True
+
+# logging format that will be used with oslo_log.formatters.ContextFormatter
+# in logging.conf below
+logging_context_format_string = poppy %(levelname)s [%(request_id)s %(user_identity)s] %(message)s
+logging_default_format_string = poppy %(levelname)s [-] %(message)s
+logging_exception_prefix = poppy ERROR %(instance)s
+
+# Log to this file
+log_file = /home/vagrant/poppy/poppy.log
+log_config_append = /home/vagrant/.poppy/logging.conf
+
+;use_same_storage_driver = True
+
+use_syslog = True
+
+[drivers]
+transport = pecan
+manager = default
+dns = rackspace
+storage = cassandra
+;providers = akamai, fastly
+providers = akamai
+distributed_task = taskflow
+notifications = mailgun
+;metrics = blueflood
+
+[drivers:transport:limits]
+max_services_per_page = 20
+
+
+[drivers:storage]
+max_services_per_project = 20
+
+[drivers:storage:cassandra]
+cluster = dockerhost
+keyspace = poppy
+archive_on_delete = True
+auth_enabled = False
+automatic_schema_migration = True
+consistency_level = LOCAL_QUORUM
+migrations_consistency_level = LOCAL_QUORUM
+max_schema_agreement_wait = 30
+
+username = cassandra
+password = cassandra
+migrations_path = /home/vagrant/poppy/poppy/storage/cassandra/migrations
+
+
+[drivers:provider:akamai:storage]
+#storage_backend_type = cassandra
+#
+#cluster = dockerhost
+#ssl_enabled = False
+#ssl_ca_certs = </absolute/path/to/cassandra.crt>
+#auth_enabled = False
+#username = cassandra
+#password = cassandra
+#;load_balance_strategy = DCAwareRoundRobinPolicy
+#consistency_level = ONE
+#migrations_consistency_level = LOCAL_QUORUM
+#max_schema_agreement_wait = 30
+#keyspace = akamai_san_info
+#migrations_path = /home/vagrant/poppy/poppy/storage/cassandra/migrations
+
+
+[drivers:dns]
+retries = 5
+
+[drivers:transport:pecan]
+bind = 0.0.0.0
+port = 8888
+
+;[drivers:storage]
+;max_services_per_project = 20
+
+[drivers:distributed_task:taskflow]
+jobboard_backend_type = zookeeper
+persistent_backend_type = zookeeper
+jobboard_backend_host = "dockerhost"
+jobboard_backend_port = 2181
+persistent_backend_host = dockerhost
+persistent_backend_port = 2181
+poppy_service_worker_path = '/taskflow/jobs/poppy_service_job'
+poppy_service_worker_jobboard = 'poppy_service_jobs'
+
+
+
+[drivers:provider:akamai]
+
+policy_api_client_secret = {{ policy_client_secret }}
+policy_api_base_url = {{ policy_base_url }}
+policy_api_access_token = {{ policy_access_token }}
+policy_api_client_token = {{ policy_client_token }}
+
+
+ccu_api_client_token = <ccu_api_client_token>
+ccu_api_client_secret = <ccu_secret>
+ccu_api_access_token = <ccu_access_token>
+ccu_api_base_url = <ccu_base_url>
+
+sps_api_client_token = <sps_api_client_token>
+sps_api_client_secret = <sps_secret>
+sps_api_access_token = <sps_access_token>
+sps_api_base_url = <sps_base_url>
+
+akamai_https_access_url_suffix = edgekey.net
+akamai_access_url_link = altcdn.com.mdc.edgesuite.net
+akamai_http_config_number = {{ ak_http_conf }}
+akamai_https_config_number = {{ ak_https_conf }}
+
+akamai_https_shared_config_number = {{ ak_https_conf }}
+akamai_https_san_config_numbers = {{ ak_https_conf }}
+akamai_https_sni_config_numbers = {{ ak_https_sni_conf }}
+akamai_https_custom_config_numbers = {{ ak_https_conf }}
+
+san_cert_hostname_limit = 80
+san_cert_cnames = secure1.san1.altcdn.com, secure2.san1.altcdn.com, secure3.san1.altcdn.com
+sni_cert_cnames = secured1.sni1.altcdn.com, secured2.sni1.altcdn.com
+
+contract_id : {{ contract_id }}
+group_id : {{ group_id }}
+san_info_storage_type = cassandra
+cert_info_storage_type = cassandra
+
+
+;[drivers:provider:fastly]
+;apikey = "MYAPIKEY"
+;scheme = "https"
+;host = "api.fastly.com"
+;
+[driver:dns]
+retries = 3
+min_backoff_range = 20
+max_backoff_range = 30
+
+[drivers:dns:rackspace]
+username = "poppy.cdn.test"
+api_key = {{ rackspace_api_key }}
+use_shards = True
+num_shards = 400
+shard_prefix = "cdn"
+records_limit = 400
+url = "altcdn.com"
+# Your email associated with DNS, for notifications
+email = {{ email_id }}
+shared_ssl_num_shards = 3
+shared_ssl_shard_prefix = scdn
+shared_ssl_domain_suffix = ssl.altcdn.com
+# link to page to be directed to when a service is disabled
+url_404 = origin.raxcdn.com
+
+
+
+[drivers:provider:akamai:queue]
+queue_backend_type = zookeeper
+queue_backend_host = dockerhost
+queue_backend_port = 2181
+mod_san_queue_path = '/mod_san_queue'
+san_mapping_queue_path = '/san_mapping_queue'
+
+
+[drivers:notification:mailgun]
+mailgun_api_key = {{ mailgun_api_key }}
+mailgun_request_url = "https://api.mailgun.net/v3/{0}/messages"
+sand_box = "mg.altcdn.com"
+from_address = "noreply@poppycdn.org"
+recipients = {{ email_id }}		
